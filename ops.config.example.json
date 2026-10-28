@@ -1,0 +1,41 @@
+{
+  "projects": [
+    {
+      "name": "admin-web",
+      "description": "示例：管理后台前端（React SPA，Nginx root 指向 <remoteRoot>/current）",
+      "host": "203.0.113.10",
+      "port": 22,
+      "username": "deploy",
+      "privateKey": "~/.ssh/id_ed25519",
+      "remoteRoot": "/data/www/admin-web",
+      "localDist": "./dist",
+      "keep": 5,
+      "logs": ["/var/log/nginx/admin-web.access.log", "/var/log/nginx/error.log"],
+      "postDeploy": []
+    },
+    {
+      "name": "api-server",
+      "description": "示例：Java 服务（systemd 托管，部署后自动重启）",
+      "host": "203.0.113.11",
+      "port": 22,
+      "username": "deploy",
+      "privateKey": "~/.ssh/id_ed25519",
+      "remoteRoot": "/data/app/api-server",
+      "localDist": "./target",
+      "keep": 3,
+      "service": { "type": "systemd", "name": "api-server" },
+      "logs": ["/data/app/api-server/current/app.log"]
+    },
+    {
+      "name": "node-bff",
+      "description": "示例：Node 服务（pm2 托管）",
+      "host": "203.0.113.12",
+      "username": "deploy",
+      "privateKey": "~/.ssh/id_ed25519",
+      "remoteRoot": "/data/app/node-bff",
+      "localDist": "./dist",
+      "keep": 5,
+      "service": { "type": "pm2", "name": "node-bff" }
+    }
+  ]
+}

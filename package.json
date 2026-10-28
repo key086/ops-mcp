@@ -1,0 +1,53 @@
+{
+  "name": "ops-mcp",
+  "version": "0.1.0",
+  "description": "MCP server that lets AI agents run zero-downtime deploys, rollbacks, restarts and log inspection over SSH — battle-tested release engineering as agent tools.",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "ops-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "ops.config.example.json"
+  ],
+  "scripts": {
+    "build": "tsc && chmod +x dist/index.js",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "deploy",
+    "deployment",
+    "devops",
+    "ssh",
+    "zero-downtime",
+    "rollback",
+    "ai-agent",
+    "claude",
+    "opencode"
+  ],
+  "license": "MIT",
+  "author": "yeah_lxf",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yeah-lxf/ops-mcp"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "node-ssh": "^13.2.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0"
+  }
+}

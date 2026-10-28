@@ -138,7 +138,7 @@ npx -y ops-mcp
 ## 开发
 
 ```bash
-git clone https://github.com/yeah-lxf/ops-mcp && cd ops-mcp
+git clone https://github.com/key086/ops-mcp && cd ops-mcp
 npm install
 npm run build
 OPS_MCP_CONFIG=./ops.config.example.json npm start   # 本地调试
@@ -146,4 +146,4 @@ OPS_MCP_CONFIG=./ops.config.example.json npm start   # 本地调试
 
 ## License
 
-[MIT](./LICENSE) © Liu Xinfeng (yeah_lxf)
+[MIT](./LICENSE) © Liu Xinfeng (key086)

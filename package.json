@@ -33,10 +33,10 @@
     "opencode"
   ],
   "license": "MIT",
-  "author": "yeah_lxf",
+  "author": "iien21",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yeah-lxf/ops-mcp"
+    "url": "https://github.com/key086/ops-mcp"
   },
   "engines": {
     "node": ">=18"

@@ -3,6 +3,8 @@ import path from "node:path";
 import type { NodeSSH } from "node-ssh";
 import type { ProjectConfig } from "./config.js";
 import { run, tryRun } from "./ssh.js";
+import { runHealthCheck, formatHealthResult } from "./health.js";
+import { notify } from "./notify.js";
 
 /**
  * 发布目录结构约定（零停机原子切换）：
@@ -87,6 +89,7 @@ export async function deploy(ssh: NodeSSH, p: ProjectConfig, localDist: string):
   if (!fs.existsSync(abs) || !fs.statSync(abs).isDirectory()) {
     throw new Error(`本地构建目录不存在：${abs}`);
   }
+  const prev = (await listReleases(ssh, p)).current;
   const id = releaseId();
   const target = `${p.remoteRoot}/releases/${id}`;
   const log: string[] = [`版本：${id}`, `来源：${abs}`];
@@ -111,7 +114,34 @@ export async function deploy(ssh: NodeSSH, p: ProjectConfig, localDist: string):
     log.push(`→ postDeploy「${cmd}」${out ? `：\n${out}` : "完成"}`);
   }
 
+  // 部署后健康检查 + 失败自动回滚
+  if (p.healthCheck) {
+    const hc = await runHealthCheck(ssh, p, p.healthCheck);
+    log.push(`→ 健康检查 ${p.healthCheck.url}：${hc.healthy ? "通过 ✅" : "未通过 ❌"}\n${formatHealthResult(hc)}`);
+    if (!hc.healthy) {
+      const autoRollback = p.autoRollback !== false;
+      if (autoRollback && prev) {
+        await switchRelease(ssh, p, prev);
+        await restartService(ssh, p);
+        await recordHistory(ssh, p, "AUTO-ROLLBACK", `${id} -> ${prev}（健康检查失败）`);
+        log.push(`⚠️ 健康检查失败，已自动回滚到 ${prev}`);
+        if (p.notify) {
+          log.push(`→ ${await notify(p.notify, `🔴 [${p.name}] 部署失败已自动回滚`, [`${id} 健康检查未通过，已回滚至 ${prev}`, ...hc.attempts.map((a) => `第${a.attempt}次: HTTP ${a.status}`)])}`);
+        }
+        return log.join("\n");
+      }
+      if (p.notify) {
+        log.push(`→ ${await notify(p.notify, `🔴 [${p.name}] 部署后健康检查失败`, [`${id} → ${p.healthCheck.url}`, ...hc.attempts.map((a) => `第${a.attempt}次: HTTP ${a.status}`)])}`);
+      }
+      await recordHistory(ssh, p, "DEPLOY-UNHEALTHY", id);
+      return log.join("\n");
+    }
+  }
+
   await recordHistory(ssh, p, "DEPLOY", id);
+  if (p.notify) {
+    log.push(`→ ${await notify(p.notify, `🟢 [${p.name}] 部署成功`, [`版本：${id}`, `目标：${p.username}@${p.host}`, p.healthCheck ? "健康检查：通过" : null].filter(Boolean) as string[])}`);
+  }
   return log.join("\n");
 }
 
@@ -127,7 +157,11 @@ export async function rollback(ssh: NodeSSH, p: ProjectConfig, steps: number): P
   await switchRelease(ssh, p, target);
   const restartMsg = await restartService(ssh, p);
   await recordHistory(ssh, p, "ROLLBACK", `${current ?? "unknown"} -> ${target}`);
-  return [`回滚：${current ?? "unknown"} → ${target}`, `→ ${restartMsg}`].join("\n");
+  const log = [`回滚：${current ?? "unknown"} → ${target}`, `→ ${restartMsg}`];
+  if (p.notify) {
+    log.push(`→ ${await notify(p.notify, `🟡 [${p.name}] 已回滚`, [`${current ?? "unknown"} → ${target}`, restartMsg])}`);
+  }
+  return log.join("\n");
 }
 
 export async function status(ssh: NodeSSH, p: ProjectConfig): Promise<string> {

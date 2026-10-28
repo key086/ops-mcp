@@ -1,6 +1,6 @@
 {
   "name": "ops-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server that lets AI agents run zero-downtime deploys, rollbacks, restarts and log inspection over SSH — battle-tested release engineering as agent tools.",
   "type": "module",
   "main": "dist/index.js",
@@ -36,7 +36,7 @@
   "author": "iien21",
   "repository": {
     "type": "git",
-    "url": "https://github.com/key086/ops-mcp"
+    "url": "git+https://github.com/key086/ops-mcp.git"
   },
   "engines": {
     "node": ">=18"

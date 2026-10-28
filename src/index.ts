@@ -14,6 +14,7 @@ import type { NodeSSH } from "node-ssh";
 import { loadConfig, getProject, sanitizeProject, type ProjectConfig } from "./config.js";
 import { connect } from "./ssh.js";
 import { deploy as doDeploy, rollback as doRollback, listReleases, restartService, status as doStatus, tailLog as doTailLog } from "./deploy.js";
+import { runHealthCheck, formatHealthResult } from "./health.js";
 
 const cfg = loadConfig();
 const server = new McpServer({ name: "ops-mcp", version: "0.1.0" });
@@ -159,6 +160,27 @@ server.tool(
     try {
       const out = await withSsh(project, doStatus);
       return ok(out);
+    } catch (e) {
+      return fail(e);
+    }
+  }
+);
+
+server.tool(
+  "health_check",
+  "对项目的健康检查 URL 发起探测（在远端服务器执行，支持内网地址），返回每次探测的 HTTP 状态",
+  {
+    project: projectParam,
+    url: z.string().optional().describe("探测 URL，缺省用项目配置的 healthCheck.url"),
+  },
+  async ({ project, url }) => {
+    try {
+      const result = await withSsh(project, async (ssh, p) => {
+        const target = url ?? p.healthCheck?.url;
+        if (!target) throw new Error("未指定 url，且项目未配置 healthCheck.url");
+        return runHealthCheck(ssh, p, { ...(p.healthCheck ?? {}), url: target });
+      });
+      return ok(`健康检查${result.healthy ? "通过 ✅" : "未通过 ❌"}\n${formatHealthResult(result)}`);
     } catch (e) {
       return fail(e);
     }

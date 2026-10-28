@@ -9,6 +9,26 @@ export interface ServiceConfig {
   command?: string;
 }
 
+export interface HealthCheckConfig {
+  /** 健康检查 URL（在远端服务器上探测，支持内网地址） */
+  url: string;
+  /** 期望的 HTTP 状态码，默认 200 */
+  expectStatus?: number;
+  /** 探测超时秒数，默认 5 */
+  timeoutSec?: number;
+  /** 重试次数，默认 3 */
+  retries?: number;
+  /** 重试间隔秒数，默认 3 */
+  intervalSec?: number;
+}
+
+export interface NotifyConfig {
+  /** 群机器人 webhook 地址，自动识别 feishu / dingtalk / wechat / slack */
+  webhook: string;
+  /** 飞书机器人加签密钥（可选） */
+  secret?: string;
+}
+
 export interface ProjectConfig {
   /** 项目名，工具调用时的唯一标识 */
   name: string;
@@ -32,6 +52,12 @@ export interface ProjectConfig {
   logs?: string[];
   /** 部署完成后执行的远端命令 */
   postDeploy?: string[];
+  /** 部署后健康检查；失败且 autoRollback 时自动回滚 */
+  healthCheck?: HealthCheckConfig;
+  /** 健康检查失败自动回滚，配置了 healthCheck 时默认 true */
+  autoRollback?: boolean;
+  /** 部署/回滚结果通知（飞书/钉钉/企微/Slack 群机器人） */
+  notify?: NotifyConfig;
 }
 
 export interface OpsConfig {

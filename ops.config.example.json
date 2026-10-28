@@ -10,8 +10,22 @@
       "remoteRoot": "/data/www/admin-web",
       "localDist": "./dist",
       "keep": 5,
-      "logs": ["/var/log/nginx/admin-web.access.log", "/var/log/nginx/error.log"],
-      "postDeploy": []
+      "logs": [
+        "/var/log/nginx/admin-web.access.log",
+        "/var/log/nginx/error.log"
+      ],
+      "postDeploy": [],
+      "healthCheck": {
+        "url": "http://127.0.0.1/healthz",
+        "expectStatus": 200,
+        "retries": 3,
+        "intervalSec": 3
+      },
+      "autoRollback": true,
+      "notify": {
+        "webhook": "https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxx",
+        "secret": "可选的加签密钥"
+      }
     },
     {
       "name": "api-server",
@@ -23,8 +37,16 @@
       "remoteRoot": "/data/app/api-server",
       "localDist": "./target",
       "keep": 3,
-      "service": { "type": "systemd", "name": "api-server" },
-      "logs": ["/data/app/api-server/current/app.log"]
+      "service": {
+        "type": "systemd",
+        "name": "api-server"
+      },
+      "logs": [
+        "/data/app/api-server/current/app.log"
+      ],
+      "notify": {
+        "webhook": "https://oapi.dingtalk.com/robot/send?access_token=xxxxxxxx"
+      }
     },
     {
       "name": "node-bff",
@@ -35,7 +57,10 @@
       "remoteRoot": "/data/app/node-bff",
       "localDist": "./dist",
       "keep": 5,
-      "service": { "type": "pm2", "name": "node-bff" }
+      "service": {
+        "type": "pm2",
+        "name": "node-bff"
+      }
     }
   ]
 }

@@ -9,6 +9,8 @@ Zero-downtime deploys, instant rollbacks, log inspection and service restarts �
 
 - 🚀 **零停机发布** — 构建产物上传至 `releases/<时间戳>`，`ln -sfn` 原子切换 `current` 软链，Nginx 无感知
 - ⏪ **秒级回滚** — 保留最近 N 个版本，一条指令切回任意历史版本
+- 🩺 **健康检查 + 自动回滚** — 部署后在远端探测健康 URL（支持内网地址），失败自动切回上一版本，把故障时间压到秒级
+- 📣 **群机器人通知** — 部署/回滚/健康检查失败自动推送飞书（支持加签）/ 钉钉 / 企业微信 / Slack
 - 🔍 **日志巡检** — tail 远端日志 / systemd journal，AI 直接读日志定位问题
 - 🔁 **服务重启** — systemd / pm2 / 自定义命令统一抽象
 - 🧾 **审计日志** — 每次部署/回滚写入远端 `.ops-history.log`，谁让 AI 干了什么有据可查
@@ -63,6 +65,17 @@ npx -y ops-mcp
       "privateKey": "~/.ssh/id_ed25519",
       "remoteRoot": "/data/app/api-server",
       "service": { "type": "systemd", "name": "api-server" },  // 部署后自动重启
+      "healthCheck": {                                          // 部署后健康检查
+        "url": "http://127.0.0.1:8080/actuator/health",
+        "expectStatus": 200,
+        "retries": 3,
+        "intervalSec": 3
+      },
+      "autoRollback": true,                                     // 检查失败自动回滚（默认开启）
+      "notify": {                                               // 结果推送群机器人
+        "webhook": "https://open.feishu.cn/open-apis/bot/v2/hook/xxx",
+        "secret": "飞书加签密钥（可选）"
+      },
       "keep": 3
     }
   ]
@@ -113,6 +126,7 @@ npx -y ops-mcp
 | `deploy` | 零停机部署（支持 `dryRun` 预览执行计划） |
 | `rollback` | 回滚到前 N 个版本，自动重启服务 |
 | `list_releases` | 查看历史版本与当前生效版本 |
+| `health_check` | 手动触发健康探测（远端执行，支持内网 URL） |
 | `tail_log` | 查看远端日志 / systemd journal |
 | `restart` | 重启服务（systemd / pm2 / 自定义命令） |
 | `status` | 当前版本、服务活性、磁盘余量、最近操作记录 |
@@ -127,9 +141,9 @@ npx -y ops-mcp
 
 ## Roadmap
 
+- [x] 部署后健康检查（HTTP probe 失败自动回滚）
+- [x] 飞书（含加签）/ 钉钉 / 企业微信 / Slack 部署通知
 - [ ] 多主机灰度发布（canary：先切一台观察再全量）
-- [ ] 部署后健康检查（HTTP probe 失败自动回滚）
-- [ ] 飞书 / Slack / 钉钉部署通知
 - [ ] Docker 镜像发布模式（build → push → 远端 pull & up）
 - [ ] Web 控制台模式（SSE 实时部署日志，浏览器可看）
 

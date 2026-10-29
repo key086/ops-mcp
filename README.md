@@ -1,5 +1,8 @@
 # ops-mcp
 
+[![npm version](https://img.shields.io/npm/v/ops-mcp)](https://www.npmjs.com/package/ops-mcp) [![CI](https://github.com/key086/ops-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/key086/ops-mcp/actions/workflows/ci.yml) ![license](https://img.shields.io/badge/license-MIT-blue) ![node](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
+
+
 **让 AI Agent 接管你的服务器发布运维。**
 Zero-downtime deploys, instant rollbacks, log inspection and service restarts — exposed as [MCP](https://modelcontextprotocol.io) tools for Claude, OpenCode, Cursor and any MCP client.
 
